@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= team._embedded.team.name %> Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
+
+    <script>
+        const team = <%- JSON.stringify(team); %>
+        const athletes = <%- JSON.stringify(athletes); %>
+        const results = <%- JSON.stringify(results); %>
+    </script>
+
+</head>
+
+<body>
+
+    <section class="hero is-info">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    <%= team._embedded.team.name %> Results
+                </h1>
+                <h2 class="subtitle">
+                    <%= team.data.monthGroups[0].month %> <%= team.data.monthGroups[0].seasonYear %> -
+                    <%= team.data.monthGroups[team.data.monthGroups.length-1].month %>
+                    <%= team.data.monthGroups[team.data.monthGroups.length-1].seasonYear %> Results
+                </h2>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="section">
+        <div class="container">
+
+
+            <p class="title">Race Points</p>
+            <p class="subtitle">By the numbers&trade;<p>
+
+            <p class="title is-5">Boys<p>
+
+            <div id="toptenBoysContainer">
+
+            </div>
+
+            <hr>
+
+            
+            <p class="title is-5">Girls<p>
+
+            <div id="toptenGirlsContainer">
+
+            </div>
+
+            <hr>
+
+            <h1 class="title mt-5">Race Results</h1>
+            <h2 class="subtitle">
+                Review race performances
+            </h2>
+
+            <div id="races">
+                <% Object.keys(results).forEach(resultKey => { const result = results[resultKey]; %>
+                <div class="card mt-3">
+                    <div class="card-content">
+                        <div class="media">
+                            <div class="media-left">
+                                <figure class="image is-48x48">
+                                    <img src="<%- result.logoUrl %>" alt="Meet image">
+                                </figure>
+                            </div>
+                            <div class="media-content">
+                                <p class="title is-4"><%= result.name %></p>
+                                <p class="subtitle is-6"><%= result.dateScheduled %>/<%= team.data.monthGroups[0].seasonYear %></p>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <p class="title is-4">Athlete performances</p>
+                            <p class="subtitle is-6">Review performances on a per-athlete basis.<p>
+                            <div id="<%-resultKey%>-athletes">
+                                <% if (result.results.boys.length !== 0){ %>
+                                    <p class="title is-5">Boys</p>
+                                    <div id="<%-resultKey%>-athletes-boys">
+                                        <% Object.keys(result.results.boys).forEach(athleteKey => { const athlete = result.results.boys[athleteKey]; %>
+                                            <div class="card mt-1">
+                                                <div class="card-content">
+                                                    <div class="level">
+                                                        <div class="level-left">
+                                                            <p class="title is-6"></p><%= athlete.firstName %> <%= athlete.lastName %></p>
+                                                        </div>
+                                                        <div class="level-right">
+                                                            <p class="subtitle is-6"></p><%= athlete.mark %></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                              </div>
+                                        <% }) %>
+                                    </div>
+                                <% } %>
+                                <% if (result.results.girls.length !== 0){ %>
+                                    <p class="title is-5 mt-3">Girls</p>
+                                    <div id="<%-resultKey%>-athletes-girls">
+                                        <% Object.keys(result.results.girls).forEach(athleteKey => { const athlete = result.results.girls[athleteKey]; %>
+                                            <div class="card mt-1">
+                                                <div class="card-content">
+                                                    <div class="level">
+                                                        <div class="level-left">
+                                                            <p class="title is-6"></p><%= athlete.firstName %> <%= athlete.lastName %></p>
+                                                        </div>
+                                                        <div class="level-right">
+                                                            <p class="subtitle is-6"></p><%= athlete.mark %></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                              </div>
+                                        <% }) %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+
+        </div>
+    </section>
+
+
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <strong>Milesplit Injestor/Parser</strong> by <a target="__blank" href="https://mwalden.tech">Matthew Walden</a>.
+            </p>
+            <div class="content has-text-centered">
+                <p>&copy; Matthew Walden <%- new Date().getFullYear() %></p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+
+<script>
+    const boysTopTen = [];
+    const girlsTopTen = [];
+    let boysRaces = [];
+    let girlsRaces = [];
+    let athleteTracker = {boys: {}, girls: {}};
+    Object.keys(results).forEach((raceKey) => {
+        const race = results[raceKey];
+        const boysResults = race.results.boys;
+        const girlsResults = race.results.girls;
+        let newBoysResults = [];
+        let newGirlResults = [];
+        Object.keys(boysResults).forEach((personKey) => {
+            const person = boysResults[personKey];
+            const mark = person.mark;
+            const mins = new Number(mark.split(".")[0].split(":")[0]);
+            const secs = new Number(mark.split(".")[0].split(":")[1]);
+            const milisecs = new Number(mark.split(".")[1]);
+            const markToTime = (mins*60)+(secs)+(milisecs/100);
+            person.markToTime = markToTime;
+            newBoysResults.push(person)
+        })
+        Object.keys(girlsResults).forEach((personKey) => {
+            const person = girlsResults[personKey];
+            const mark = person.mark;
+            const mins = new Number(mark.split(".")[0].split(":")[0]);
+            const secs = new Number(mark.split(".")[0].split(":")[1]);
+            const milisecs = new Number(mark.split(".")[1]);
+            const markToTime = (mins*60)+(secs)+(milisecs/100);
+            person.markToTime = markToTime;
+            newGirlResults.push(person)
+        })
+        newBoysResults.sort((a, b) => {
+            if (a.markToTime > b.markToTime){
+                return 1;
+            }else{
+                return -1;
+            }
+        });
+        newGirlResults.sort((a, b) => {
+            if (a.markToTime > b.markToTime){
+                return 1;
+            }else{
+                return -1;
+            }
+        });
+        boysRaces.push(newBoysResults);
+        girlsRaces.push(newGirlResults);
+    })
+    let boyScore = {};
+    let girlsScore = {};
+    boysRaces.forEach(a => {
+        a.forEach((result, place) => {
+            console.log(result)
+            if (boyScore[result.athleteId] == undefined){
+                boyScore[result.athleteId] = {
+                    score: 0,
+                    events: 0,
+                    time: 0,
+                    athlete: result
+                }
+            }
+            boyScore[result.athleteId].score = boyScore[result.athleteId].score+(place+1)
+            boyScore[result.athleteId].events = boyScore[result.athleteId].events+1;
+            boyScore[result.athleteId].time = boyScore[result.athleteId].time+(result.markToTime);
+        })
+    })
+    girlsRaces.forEach(a => {
+        let inRaces = 0;
+        a.forEach((result, place) => {
+            if (girlsScore[result.athleteId] == undefined){
+                girlsScore[result.athleteId] = {
+                    score: 0,
+                    events: 0,
+                    time: 0,
+                    athlete: result
+                }
+            }
+            inRaces=inRaces+1;
+            girlsScore[result.athleteId].score = girlsScore[result.athleteId].score+(place+1);
+            girlsScore[result.athleteId].events = girlsScore[result.athleteId].events+1;
+            girlsScore[result.athleteId].time = girlsScore[result.athleteId].time+(result.markToTime);
+        })
+    })
+    let maxBoys = 0;
+    let maxGirls = 0;
+Object.keys(boyScore).forEach((key) => {
+    const a = boyScore[key];
+    if (maxBoys <= a.events){
+        maxBoys = a.events;
+    }
+})
+Object.keys(boyScore).forEach((key) => {
+    const a = boyScore[key];
+    let num = maxBoys-a.events-1;
+    for (let i=0; i <= num; i++){
+        boyScore[key].score = boyScore[key].score+10;
+        boyScore[key].adjusted = true;
+        }
+    })
+Object.keys(girlsScore).forEach((key) => {
+    const a = girlsScore[key];
+    if (maxGirls <= a.events){
+        maxGirls = a.events;
+    }
+})
+Object.keys(girlsScore).forEach((key) => {
+    const a = girlsScore[key];
+    let num = maxGirls-a.events-1;
+    for (let i=0; i <= num; i++){
+        girlsScore[key].score = girlsScore[key].score+10;
+        girlsScore[key].adjusted = true;
+        }
+    })
+    var sortableBoys = [];
+    var sortableGirls = [];
+    for (var person in boyScore) {
+        sortableBoys.push([person, boyScore[person]]);
+    }
+    for (var person in girlsScore) {
+        sortableGirls.push([person, girlsScore[person]]);
+    }
+    sortableBoys.sort(function(a, b) {
+        if (a[1].score > b[1].score){
+            return 1;
+        }else{
+            return -1;
+        }
+    });
+    sortableGirls.sort(function(a, b) {
+        if (a[1].score > b[1].score){
+            return 1;
+        }else{
+            return -1;
+        }
+    });
+const boysContainer = document.getElementById("toptenBoysContainer");
+function formatSecondsToTime(seconds){
+    const f_minutes = Math.floor(seconds/60);
+    const f_seconds = Math.floor(seconds%60);
+    const f_miliseconds = Math.round((seconds%60-f_seconds)*100);
+    return f_minutes+":"+f_seconds+"."+f_miliseconds
+}
+sortableBoys.forEach((a, index) => {
+    const athlete = a[1].athlete;
+    const score = a[1].score;
+    const events = a[1].events;
+    const adjusted = a[1].adjusted;
+    const average = a[1].time/events;
+    const stringAverage = formatSecondsToTime(average);
+    boysContainer.insertAdjacentHTML('beforeend', `
+    <div class="card mt-1">
+    <div class="card-content">
+        <div class="level">
+            <div class="level-left">
+                <p class="title is-6">${index+1}: ${athlete.firstName} ${athlete.lastName}</p>
+            </div>
+            <div class="level-right">
+                <p class="level-item"> ${stringAverage} Average </p>
+                <p class="level-item"> ${events} Races </p>
+                <p class="level-item"> ${score} Points ${adjusted == true ? "Adjusted" : ""} </p>
+            </div>
+        </div>
+    </div
+    `)
+})
+const girlsContainer = document.getElementById("toptenGirlsContainer");
+sortableGirls.forEach((a, index) => {
+    const athlete = a[1].athlete;
+    const score = a[1].score;
+    const events = a[1].events;
+    const average = a[1].time/events;
+    const stringAverage = formatSecondsToTime(average);
+    const adjusted = a[1].adjusted;
+    girlsContainer.insertAdjacentHTML('beforeend', `
+    <div class="card mt-1">
+    <div class="card-content">
+        <div class="level">
+            <div class="level-left">
+                <p class="title is-6">${index+1}: ${athlete.firstName} ${athlete.lastName}</p>
+            </div>
+            <div class="level-right">
+            <div class="level-right">
+                <p class="level-item"> ${stringAverage} Average </p>
+                <p class="level-item"> ${events} Races </p>
+                <p class="level-item"> ${score} Points ${adjusted == true ? "Adjusted" : ""} </p>
+            </div>
+        </div>
+    </div
+    `)
+})
+</script>
+
+</html>

@@ -1,0 +1,35 @@
+#services
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: milesplitscraper
+spec:
+  selector:
+    app: milesplitscraper
+  ports:
+    - port: 984
+      targetPort: 985
+  type: LoadBalancer
+---
+#app
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: milesplitscraper
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: milesplitscraper
+  template:
+    metadata:
+      labels:
+        app: milesplitscraper
+    spec:
+      containers:
+        - name: app
+          image: registry.digitalocean.com/mwalden/milesplitscraper:latest
+          ports:
+            - containerPort: 985

@@ -31,5 +31,6 @@ spec:
       containers:
         - name: app
           image: registry.digitalocean.com/mwalden/milesplitscraper:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 985

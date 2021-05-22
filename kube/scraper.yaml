@@ -10,7 +10,7 @@ spec:
   ports:
     - port: 984
       targetPort: 985
-  type: LoadBalancer
+  type: NodePort
 ---
 #app
 
